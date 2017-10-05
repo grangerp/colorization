@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import os, sys, datetime
 import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
@@ -20,8 +20,12 @@ def parse_args():
 if __name__ == '__main__':
 	args = parse_args()
 
-	caffe.set_mode_gpu()
-	caffe.set_device(args.gpu)
+    filename = str(datetime.datetime.now()) + '.jpg'
+
+    with open(filename, 'wb') as f:
+        f.write(sys.stdin.read())
+
+	caffe.set_mode_cpu()
 
 	# Select desired model
 	net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
@@ -34,7 +38,7 @@ if __name__ == '__main__':
 	# print 'Annealed-Mean Parameters populated'
 
 	# load the original image
-	img_rgb = caffe.io.load_image(args.img_in)
+	img_rgb = caffe.io.load_image(filename)
 
 	img_lab = color.rgb2lab(img_rgb) # convert image to lab color space
 	img_l = img_lab[:,:,0] # pull out L channel
@@ -59,3 +63,4 @@ if __name__ == '__main__':
 	img_rgb_out = (255*np.clip(color.lab2rgb(img_lab_out),0,1)).astype('uint8') # convert back to rgb
 
 	plt.imsave(args.img_out, img_rgb_out)
+    print(img_rgb_out)
