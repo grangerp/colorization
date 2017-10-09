@@ -6,4 +6,4 @@ functions:
   colorization:
     lang: Dockerfile
     handler: .
-    image: openfaas-colorization
+    image: developius/openfaas-colorization
