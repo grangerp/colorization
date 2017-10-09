@@ -8,7 +8,7 @@ RUN unzip master.zip
 WORKDIR /workspace/colorization-master
 RUN wget http://eecs.berkeley.edu/~rich.zhang/projects/2016_colorization/files/demo_v2/colorization_release_v2.caffemodel -O ./models/colorization_release_v2.caffemodel
 
-ADD https://github.com/openfaas/faas/releases/download/0.5.1-alpha/fwatchdog /usr/bin
+ADD https://github.com/openfaas/faas/releases/download/0.6.5/fwatchdog /usr/bin
 RUN chmod +x /usr/bin/fwatchdog
 
 ENV fprocess="python -u colorize.py"

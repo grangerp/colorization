@@ -26,7 +26,7 @@ if (__name__ == "__main__"):
   caffe.set_mode_cpu()
 
   # Select desired model
-  net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
+  net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorization_release_v2.caffemodel', caffe.TEST)
 
   (H_in,W_in) = net.blobs['data_l'].data.shape[2:] # get input shape
   (H_out,W_out) = net.blobs['class8_ab'].data.shape[2:] # get output shape
