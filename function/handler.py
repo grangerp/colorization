@@ -44,7 +44,7 @@ def handle(file_data):
         file_path_in = '/root/' + filename_in
         file_path_out = '/root/' + filename_out
 
-        with open(file_path, 'wb') as f:
+        with open(file_path_in, 'wb') as f:
             f.write(file_data)
 
         try:
@@ -54,7 +54,7 @@ def handle(file_data):
             print(err)
 
         # load the original image
-        img_rgb = caffe.io.load_image(file_path)
+        img_rgb = caffe.io.load_image(file_path_in)
 
         img_lab = color.rgb2lab(img_rgb) # convert image to lab color space
         img_l = img_lab[:,:,0] # pull out L channel
