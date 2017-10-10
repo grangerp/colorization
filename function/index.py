@@ -1,6 +1,6 @@
 from http_parser.pyparser import HttpParser
 import sys
-from function import handler
+from handler import handler
 
 
 def read_body(content_length):
