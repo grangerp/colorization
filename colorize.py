@@ -8,16 +8,9 @@ import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
 import caffe
 
-def get_stdin():
-    buf = ""
-    for line in sys.stdin:
-        buf = buf + line
-    return buf
-
-if (__name__ == "__main__"):
+def handle(file_data):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        file_data = get_stdin()
 
         filename = '/root/' + str(datetime.datetime.now()) + '.jpg'
 
