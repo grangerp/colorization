@@ -8,6 +8,17 @@ import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
 import caffe
 
+caffe.set_mode_cpu()
+
+# Select desired model
+net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorization_release_v2.caffemodel', caffe.TEST)
+
+(H_in,W_in) = net.blobs['data_l'].data.shape[2:] # get input shape
+(H_out,W_out) = net.blobs['class8_ab'].data.shape[2:] # get output shape
+
+pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
+net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
+
 def handle(file_data):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -16,18 +27,6 @@ def handle(file_data):
 
         with open(filename, 'wb') as f:
             f.write(file_data)
-
-        caffe.set_mode_cpu()
-
-        # Select desired model
-        net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorization_release_v2.caffemodel', caffe.TEST)
-
-        (H_in,W_in) = net.blobs['data_l'].data.shape[2:] # get input shape
-        (H_out,W_out) = net.blobs['class8_ab'].data.shape[2:] # get output shape
-
-        pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
-        net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
-        # print 'Annealed-Mean Parameters populated'
 
         # load the original image
         img_rgb = caffe.io.load_image(filename)

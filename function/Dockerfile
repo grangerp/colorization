@@ -11,12 +11,12 @@ RUN wget https://raw.githubusercontent.com/richzhang/colorization/master/models/
 COPY fwatchdog /usr/bin
 RUN chmod +x /usr/bin/fwatchdog
 
-ENV fprocess="python -u main.py"
+ENV fprocess="python -u index.py"
 ENV read_timeout="60"
 ENV write_timeout="60"
 ENV afterburn=true
 
-COPY colorize.py colorize.py
-COPY main.py main.py
+COPY index.py index.py
+COPY handler.py handler.py
 
 CMD ["fwatchdog"]
