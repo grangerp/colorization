@@ -6,7 +6,22 @@ import sys, datetime, warnings
 import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
-import caffe
+import caffe, contextlib, io
+
+from minio import Minio
+from minio.error import ResponseError
+
+@contextlib.contextmanager
+def nostdout():
+    save_stdout = sys.stdout
+    sys.stdout = io.BytesIO()
+    yield
+    sys.stdout = save_stdout
+
+minioClient = Minio('faas_minio_minio1:9000',
+                  access_key=os.environ['minio_access_key'],
+                  secret_key=os.environ['minio_secret_key'],
+                  secure=True)
 
 caffe.set_mode_cpu()
 
@@ -23,13 +38,23 @@ def handle(file_data):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        filename = '/root/' + str(datetime.datetime.now()) + '.jpg'
+        now = str(datetime.datetime.now())
+        filename_in = now + '.jpg'
+        filename_out = now + '_output.jpg'
+        file_path_in = '/root/' + filename_in
+        file_path_out = '/root/' + filename_out
 
-        with open(filename, 'wb') as f:
+        with open(file_path, 'wb') as f:
             f.write(file_data)
 
+        try:
+            with nostdout():
+                minioClient.fput_object('colorization', file_path_in, filename_in)
+        except ResponseError as err:
+            print(err)
+
         # load the original image
-        img_rgb = caffe.io.load_image(filename)
+        img_rgb = caffe.io.load_image(file_path)
 
         img_lab = color.rgb2lab(img_rgb) # convert image to lab color space
         img_l = img_lab[:,:,0] # pull out L channel
@@ -53,6 +78,10 @@ def handle(file_data):
         img_lab_out = np.concatenate((img_l[:,:,np.newaxis],ab_dec_us),axis=2) # concatenate with original image L
         img_rgb_out = (255*np.clip(color.lab2rgb(img_lab_out),0,1)).astype('uint8') # convert back to rgb
 
-        plt.imsave(filename, img_rgb_out)
-        with open(filename, 'rb') as f:
-            return f.read()
+        plt.imsave(filename, file_path_out)
+
+        try:
+            with nostdout():
+                minioClient.fput_object('colorization', file_path_out, filename_out)
+        except ResponseError as err:
+            print(err)
