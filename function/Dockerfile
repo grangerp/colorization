@@ -7,11 +7,8 @@ RUN wget https://github.com/richzhang/colorization/raw/master/resources/pts_in_h
 RUN wget http://eecs.berkeley.edu/~rich.zhang/projects/2016_colorization/files/demo_v2/colorization_release_v2.caffemodel -O ./models/colorization_release_v2.caffemodel
 RUN wget https://raw.githubusercontent.com/richzhang/colorization/master/models/colorization_deploy_v2.prototxt -O ./models/colorization_deploy_v2.prototxt
 
-RUN apk --no-cache add curl \
-    && echo "Pulling watchdog binary from Github." \
-    && curl -sSL https://github.com/openfaas/faas/releases/download/0.6.5/fwatchdog > /usr/bin/fwatchdog \
-    && chmod +x /usr/bin/fwatchdog \
-    && apk del curl --no-cache
+RUN curl -sSL https://github.com/openfaas/faas/releases/download/0.6.5/fwatchdog > /usr/bin/fwatchdog \
+    && chmod +x /usr/bin/fwatchdog
 RUN chmod +x /usr/bin/fwatchdog
 
 ENV fprocess="python -u index.py"
