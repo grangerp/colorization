@@ -1,6 +1,6 @@
 FROM bvlc/caffe:cpu
 
-RUN apt-get update && apt-get install unzip python-tk -qy
+RUN apt-get update && apt-get install unzip python-tk curl -qy
 
 RUN mkdir models resources
 RUN wget https://github.com/richzhang/colorization/raw/master/resources/pts_in_hull.npy -O ./resources/pts_in_hull.npy
