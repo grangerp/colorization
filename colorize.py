@@ -16,6 +16,7 @@ def get_stdin():
 
 if (__name__ == "__main__"):
     with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         file_data = get_stdin()
 
         filename = '/root/' + str(datetime.datetime.now()) + '.jpg'
