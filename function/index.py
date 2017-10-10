@@ -1,6 +1,6 @@
 from http_parser.pyparser import HttpParser
 import sys
-from handler import handler
+from handler import handle
 
 
 def read_body(content_length):
@@ -31,9 +31,9 @@ def main():
         content_length = p.get_headers()[length_key]
         if content_length != None:
             body = read_body(int(content_length))
-            result = handler.handle(body)
+            result = handle(body)
         else:
-            result = handler.handle(None)
+            result = handle(None)
 
         out_buffer = "HTTP/1.1 200 OK\r\n"
         out_buffer += "Content-Length: "+str(len(result))+"\r\n"
