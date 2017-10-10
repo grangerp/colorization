@@ -118,6 +118,12 @@ Interactive Colorization: <b>Real-Time User-Guided Image Colorization with Learn
 
 Representation Learning: <b>Split-Brain Autoencoders: Unsupervised Prediction by Cross-Channel Prediction.</b> R. Zhang, P. Isola, A. A. Efros. In SIGGRAPH, 2017. [Website](https://richzhang.github.io/splitbrainauto/)[GitHub](https://github.com/richzhang/splitbrainauto)
 
+### Deploying with OpenFaaS
+
+```
+$ faas-cli deploy -f https://github.com/developius/colorization/blob/master/colorization.yml -e read_timeout=60 -e write_timeout=60
+```
+
 ### Citation ###
 If you find this model useful for your resesarch, please use this [bibtex](http://richzhang.github.io/colorization/resources/bibtex_eccv2016_colorization.txt) to cite.
 
