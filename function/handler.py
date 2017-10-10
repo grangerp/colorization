@@ -21,7 +21,7 @@ def nostdout():
 minioClient = Minio('faas_minio_minio1:9000',
                   access_key=os.environ['minio_access_key'],
                   secret_key=os.environ['minio_secret_key'],
-                  secure=True)
+                  secure=False)
 
 caffe.set_mode_cpu()
 
@@ -78,7 +78,7 @@ def handle(file_data):
         img_lab_out = np.concatenate((img_l[:,:,np.newaxis],ab_dec_us),axis=2) # concatenate with original image L
         img_rgb_out = (255*np.clip(color.lab2rgb(img_lab_out),0,1)).astype('uint8') # convert back to rgb
 
-        plt.imsave(filename, file_path_out)
+        plt.imsave(file_path_out, img_rgb_out)
 
         try:
             with nostdout():
