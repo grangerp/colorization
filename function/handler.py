@@ -49,7 +49,7 @@ def handle(file_data):
 
         try:
             with nostdout():
-                minioClient.fput_object('colorization', file_path_in, filename_in)
+                minioClient.fput_object('colorization', filename_in, file_path_in)
         except ResponseError as err:
             print(err)
 
@@ -82,7 +82,7 @@ def handle(file_data):
 
         try:
             with nostdout():
-                minioClient.fput_object('colorization', file_path_out, filename_out)
+                minioClient.fput_object('colorization', filename_out, file_path_out)
             return file_path_out
         except ResponseError as err:
             return err
