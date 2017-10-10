@@ -5,5 +5,8 @@ provider:
 functions:
   colorization:
     lang: Dockerfile
-    handler: .
+    handler: ./function
     image: developius/openfaas-colorization
+    environment:
+      read_timeout: 60
+      write_timeout: 60
