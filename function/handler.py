@@ -79,4 +79,4 @@ def handle(file_data):
 
         with nostdout():
             minioClient.fput_object('colorization', filename_out, file_path_out)
-        return file_path_out
+        return filename_out
