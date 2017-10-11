@@ -2,11 +2,11 @@ import os
 os.environ['GLOG_minloglevel'] = '3'
 
 import numpy as np
-import sys, datetime, warnings
+import sys, time, warnings
 import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
-import caffe, contextlib, io
+import caffe, contextlib, io, tempfile
 
 from minio import Minio
 from minio.error import ResponseError
@@ -38,20 +38,17 @@ def handle(file_data):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        now = str(datetime.datetime.now())
+        now = str(int(round(time.time() * 1000)))
         filename_in = now + '.jpg'
         filename_out = now + '_output.jpg'
-        file_path_in = '/root/' + filename_in
-        file_path_out = '/root/' + filename_out
+        file_path_in = tempfile.gettempdir() + '/' + filename_in
+        file_path_out = tempfile.gettempdir() + '/' + filename_out
 
         with open(file_path_in, 'wb') as f:
             f.write(file_data)
 
-        try:
-            with nostdout():
-                minioClient.fput_object('colorization', filename_in, file_path_in)
-        except ResponseError as err:
-            print(err)
+        with nostdout():
+            minioClient.fput_object('colorization', filename_in, file_path_in)
 
         # load the original image
         img_rgb = caffe.io.load_image(file_path_in)
@@ -80,9 +77,6 @@ def handle(file_data):
 
         plt.imsave(file_path_out, img_rgb_out)
 
-        try:
-            with nostdout():
-                minioClient.fput_object('colorization', filename_out, file_path_out)
-            return file_path_out
-        except ResponseError as err:
-            return err
+        with nostdout():
+            minioClient.fput_object('colorization', filename_out, file_path_out)
+        return file_path_out
