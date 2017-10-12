@@ -7,6 +7,7 @@ import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
 import caffe, contextlib, io, tempfile
+import json
 
 from minio import Minio
 from minio.error import ResponseError
