@@ -52,6 +52,8 @@ def handle(json_in):
         # load the original image
         img_rgb = caffe.io.load_image(file_path_in)
 
+        start = time.time()
+
         img_lab = color.rgb2lab(img_rgb) # convert image to lab color space
         img_l = img_lab[:,:,0] # pull out L channel
         (H_orig,W_orig) = img_rgb.shape[:2] # original image size
@@ -74,10 +76,13 @@ def handle(json_in):
         img_lab_out = np.concatenate((img_l[:,:,np.newaxis],ab_dec_us),axis=2) # concatenate with original image L
         img_rgb_out = (255*np.clip(color.lab2rgb(img_lab_out),0,1)).astype('uint8') # convert back to rgb
 
+        duration = time.time() - start
+
         plt.imsave(file_path_out, img_rgb_out)
 
         json_out = json_in
         json_out['image'] = filename_out
+        json_out['duration'] = duration
 
         with nostdout():
             minioClient.fput_object('colorization', filename_out, file_path_out)
