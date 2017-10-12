@@ -46,11 +46,8 @@ def handle(json_in):
         file_path_in = tempfile.gettempdir() + '/' + filename_in
         file_path_out = tempfile.gettempdir() + '/' + filename_out
 
-        with open(file_path_in, 'wb') as f:
-            f.write(json_in['file_data'])
-
         with nostdout():
-            minioClient.fput_object('colorization', filename_in, file_path_in)
+            minioClient.fget_object('colorization', json_in['image'], file_path_in)
 
         # load the original image
         img_rgb = caffe.io.load_image(file_path_in)
