@@ -1,5 +1,6 @@
 import sys
 import handler
+import json
 
 def get_stdin():
     buf = ""
@@ -19,4 +20,4 @@ def read_head():
 
 if(__name__ == "__main__"):
     st = get_stdin()
-    print(handler.handle(st))
+    print(json.dumps(handler.handle(st)))

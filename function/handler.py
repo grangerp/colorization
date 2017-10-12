@@ -34,8 +34,8 @@ net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorizati
 pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
 net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
 
-def handle(json_data):
-    json_data = json.loads(json_data)
+def handle(json_in):
+    json_in = json.loads(json_in)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
@@ -46,7 +46,7 @@ def handle(json_data):
         file_path_out = tempfile.gettempdir() + '/' + filename_out
 
         with open(file_path_in, 'wb') as f:
-            f.write(json_data['file_data'])
+            f.write(json_in['file_data'])
 
         with nostdout():
             minioClient.fput_object('colorization', filename_in, file_path_in)
@@ -78,6 +78,9 @@ def handle(json_data):
 
         plt.imsave(file_path_out, img_rgb_out)
 
+        json_out = json_in
+        json_out['image'] = filename_out
+
         with nostdout():
             minioClient.fput_object('colorization', filename_out, file_path_out)
-        return filename_out
+        return json_out
