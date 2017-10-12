@@ -7,6 +7,7 @@ import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
 import caffe, contextlib, io, tempfile
+import json
 
 from minio import Minio
 from minio.error import ResponseError
@@ -34,7 +35,8 @@ net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorizati
 pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
 net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
 
-def handle(file_data):
+def handle(json_in):
+    json_in = json.loads(json_in)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
@@ -44,11 +46,8 @@ def handle(file_data):
         file_path_in = tempfile.gettempdir() + '/' + filename_in
         file_path_out = tempfile.gettempdir() + '/' + filename_out
 
-        with open(file_path_in, 'wb') as f:
-            f.write(file_data)
-
         with nostdout():
-            minioClient.fput_object('colorization', filename_in, file_path_in)
+            minioClient.fget_object('colorization', json_in['image'], file_path_in)
 
         # load the original image
         img_rgb = caffe.io.load_image(file_path_in)
@@ -77,6 +76,9 @@ def handle(file_data):
 
         plt.imsave(file_path_out, img_rgb_out)
 
+        json_out = json_in
+        json_out['image'] = filename_out
+
         with nostdout():
             minioClient.fput_object('colorization', filename_out, file_path_out)
-        return filename_out
+        return json_out
