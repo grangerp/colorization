@@ -35,6 +35,13 @@ net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorizati
 pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
 net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
 
+"""
+Input:
+{
+  "image": "minio_path_to_image.jpg"
+}
+"""
+
 def handle(json_in):
     json_in = json.loads(json_in)
     with warnings.catch_warnings():
