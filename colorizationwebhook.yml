@@ -1,0 +1,11 @@
+provider:
+  name: faas
+  gateway: http://localhost:8080
+
+functions:
+  colorizationwebhook:
+    lang: python3
+    handler: ./colorizationwebhook
+    image: grangerp/colorizationwebhook
+    environment_file:
+      - credentials.yml

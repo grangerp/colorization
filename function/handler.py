@@ -1,8 +1,11 @@
 import os
 os.environ['GLOG_minloglevel'] = '3'
 
+import requests
 import numpy as np
-import sys, time, warnings
+import sys
+import time
+import warnings
 import skimage.color as color
 import matplotlib.pyplot as plt
 import scipy.ndimage.interpolation as sni
@@ -10,7 +13,9 @@ import caffe, contextlib, io, tempfile
 import json
 
 from minio import Minio
-from minio.error import ResponseError
+
+MINIO_URL = os.environ.get('MINIO_URL')
+
 
 @contextlib.contextmanager
 def nostdout():
@@ -19,21 +24,38 @@ def nostdout():
     yield
     sys.stdout = save_stdout
 
-minioClient = Minio(os.environ['minio_url'],
-                  access_key=os.environ['minio_access_key'],
-                  secret_key=os.environ['minio_secret_key'],
-                  secure=False)
+
+minioClient = Minio(
+    MINIO_URL,
+    access_key=os.environ.get('MINIO_ACCESS_KEY'),
+    secret_key=os.environ.get('MINIO_SECRET_KEY'),
+    secure=False
+)
 
 caffe.set_mode_cpu()
 
 # Select desired model
-net = caffe.Net('./models/colorization_deploy_v2.prototxt', './models/colorization_release_v2.caffemodel', caffe.TEST)
+net = caffe.Net(
+    './models/colorization_deploy_v2.prototxt',
+    './models/colorization_release_v2.caffemodel',
+    caffe.TEST
+)
 
 (H_in,W_in) = net.blobs['data_l'].data.shape[2:] # get input shape
 (H_out,W_out) = net.blobs['class8_ab'].data.shape[2:] # get output shape
 
 pts_in_hull = np.load('./resources/pts_in_hull.npy') # load cluster centers
 net.params['class8_ab'][0].data[:,:,0,0] = pts_in_hull.transpose((1,0)) # populate cluster centers as 1x1 convolution kernel
+
+
+def send_slack(text, webhook=os.environ.get('SLACK_WEBHOOK')):
+    data = {
+        'text': text,
+        'unfurl_links': True,
+    }
+    res = requests.post(webhook, json=data)
+
+    return res.status_code
 
 """
 Input:
@@ -49,7 +71,7 @@ def handle(json_in):
 
         now = str(int(round(time.time() * 1000)))
         filename_in = now + '.jpg'
-        filename_out = now + '_output.jpg'
+        filename_out = now + '_output.png'
         file_path_in = tempfile.gettempdir() + '/' + filename_in
         file_path_out = tempfile.gettempdir() + '/' + filename_out
 
@@ -75,6 +97,7 @@ def handle(json_in):
         img_lab_rs = color.rgb2lab(img_rs)
         img_l_rs = img_lab_rs[:,:,0]
 
+
         net.blobs['data_l'].data[0,0,:,:] = img_l_rs-50 # subtract 50 for mean-centering
         net.forward() # run network
 
@@ -85,12 +108,24 @@ def handle(json_in):
 
         duration = time.time() - start
 
-        plt.imsave(file_path_out, img_rgb_out)
+        plt.imsave(file_path_out, img_rgb_out, format='png')
 
+        original_name = json_in['image']
         json_out = json_in
         json_out['image'] = filename_out
         json_out['duration'] = duration
 
+        filename_out = 'results/' + filename_out
+
+        from datetime import timedelta
+
+
         with nostdout():
             minioClient.fput_object('colorization', filename_out, file_path_out)
+            presigned = minioClient.presigned_get_object('colorization', filename_out, expires=timedelta(days=2))
+            presigned = presigned.replace(MINIO_URL, '13.82.43.24')
+            presigned_original = minioClient.presigned_get_object('colorization', original_name, expires=timedelta(days=2))
+            presigned_original = presigned_original.replace(MINIO_URL, '13.82.43.24')
+
+        send_slack("{} => {} ".format(presigned_original, presigned))
         return json_out
